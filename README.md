@@ -30,17 +30,25 @@ make_parquets notebook is just for reference.  The output are the following file
 #openphenom-1920 actives + MOA gs://calico-reference-embeddings/embeddings/JUMP_Bayer_compounds/OpenPhenom/parquets/openphenom_1920_sphered_mad_robustized-ACTIVE_with_MOA.parquet
 
 #CP CNN (normalized): gs://calico-reference-embeddings/embeddings/CP-CNN/master_cp-cnn_normalized.parquet
-#CP CNN drugseq subset (normalized)": "gs://calico-reference-embeddings/embeddings/CP-CNN/master_cp_cnn_normed_drugseq_subset.parquet"    
+#CP CNN drugseq subset (normalized)": "gs://calico-reference-embeddings/embeddings/CP-CNN/master_cp_cnn_normed_drugseq_subset.parquet"
 #"CP CNN drugseq subset (normalized, 512d)": "gs://calico-reference-embeddings/embeddings/CP-CNN/master_cp_cnn_512D_sphered_mad_consensus.parquet",
 
 #Imagenet (normalized): gs://calico-reference-embeddings/embeddings/Imagenet/master_imagenet_normalized.parquet
 #Imagenet drugseq subset (normalized)": "gs://calico-reference-embeddings/embeddings/Imagenet/master_imagenet_normed_drugseq_subset.parquet"
 
 #novartis drugseq u2os:    gs://calico-reference-embeddings/embeddings/Novartis_DRUGseq_expression_data/Novartis_U2OS_Dose_Time_Signatures.parquet
+#novartis drugseq u2os normalized: gs://calico-reference-embeddings/embeddings/Novartis_DRUGseq_expression_data/novartis_drugseq_u2os_10uM_24h_normalized_factors.parquet
 
+#Chemperturb-bridge latent cross-cell line transcriptional perturbation representations: gs://calico-reference-embeddings/embeddings/ChemPerturb-Bridge/latent_perturbation_embeddings/jump_cp_latent_perturbation_embeddings.parquet
 
 The KNN sweep notebook contains the code to run the analyses for kNN comparisons between all of the data sets above
+
 6/12/202 Update: I joined in MOA labels from Jump consortium/Shantanu's group.  
 The MOA labels are located here: gs://calico-reference-embeddings/embeddings/JUMP MOA annotations/annotations_compound_gene_curated.parquet
 
 I have added a notebook to run CCA between the morphology datasets (including imagenet and CP-CNN) and Novartis U2OS drug-seq data.
+
+09/21/2026 Update: I have added a notebooks to do the following:
+1) Normalize the Novartis Drugseq dataset (2026_09_16_Normalizing_drug_seq.ipynb)
+2) Extract the latent transcriptional perturbation representations from chemperturb-bridge (20260920-ChemPerturbRidge_extract_latent_representation.ipynb)
+3) Added the Morphology_vs_Drugseq_v3.ipynb, updating the approach to running CCA
