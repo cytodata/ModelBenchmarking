@@ -15,25 +15,21 @@ make_parquets notebook is just for reference.  The output are the following file
 #chemical checker sign3 ALL_CLUSTERED: gs://calico-reference-embeddings/embeddings/Chemical_Checker_Embeddings/JUMP_CP_Global_Signatures_Clustered_Only.parquet
 #cc_imputed_clusters gs://calico-reference-embeddings/Chemical_Checker_Embeddings/parquets/sign3_big_clusters.csv
 
-#bayer DINO: gs://calico-reference-embeddings/Annotations_from_Roman/Bayer_data_harmonized/Bayer_DINO_embeddings/BAYER_DINO_embeddings_nonorm_final.parquet
-#bayer DINO+renormalized: gs://calico-reference-embeddings/Annotations_from_Roman/Bayer_data_harmonized/Bayer_DINO_embeddings/BAYER_DINO_embeddings_0922_normed.parquet
-#bayer DINO+post processing ACTIVES: gs://calico-reference-embeddings/Annotations_from_Roman/Bayer_data_harmonized/Bayer_DINO_embeddings/Bayer_DINO_embeddings_normed_final-actives_only.parquet
-#bayer DINO actives with moa: gs://calico-reference-embeddings/Annotations_from_Roman/Bayer_data_harmonized/Bayer_DINO_embeddings/Bayer_DINO_embeddings_normed_final-actives_only_with_MOA.parquet
+#MORPHOLOGY_DATASETS
+    #"DINO (Raw)": "gs://calico-reference-embeddings/indexed_by_inchikey/BAYER_DINO_embeddings_nonorm_final.parquet",
+    #"DINO (Normed)": "gs://calico-reference-embeddings/indexed_by_inchikey/BAYER_DINO_embeddings_0922_normed.parquet",
+    #'CP CNN (normalized)': "gs://calico-reference-embeddings/indexed_by_inchikey/CP-CNN_JUMP-CP_9.22_normalized.parquet",
+    #'Imagenet (normalized)': "gs://calico-reference-embeddings/indexed_by_inchikey/Imagenet_JUMP-CP_9.22_normalized.parquet",
+    #"OpenPhenom 384 (Raw)": "gs://calico-reference-embeddings/indexed_by_inchikey/openphenom_384.parquet",
+    #"OpenPhenom 384 (Normed)": "gs://calico-reference-embeddings/indexed_by_inchikey/openphenom_384_0922_normed.parquet",
+    #"OpenPhenom 1920 (Raw)": "gs://calico-reference-embeddings/indexed_by_inchikey/openphenom_1920.parquet",
+    #"OpenPhenom 1920 (Normed)": "gs://calico-reference-embeddings/indexed_by_inchikey/openphenom_1920_0922_normed.parquet",
 
-#openphenom-384: gs://calico-reference-embeddings/embeddings/JUMP_Bayer_compounds/OpenPhenom/parquets/openphenom_384.parquet
-#openphenom-384 sphered+madrobustize: gs://calico-reference-embeddings/embeddings/JUMP_Bayer_compounds/OpenPhenom/parquets/openphenom_384_0922_normed.parquet
-#openphenom-1920: gs://calico-reference-embeddings/embeddings/JUMP_Bayer_compounds/OpenPhenom/parquets/openphenom_1920.parquet
-#openphenom-1920 sphered+madrobustize: gs://calico-reference-embeddings/embeddings/JUMP_Bayer_compounds/OpenPhenom/parquets/openphenom_1920_0922_normed.parquet
-
-#CP-CNN (normalized): gs://calico-reference-embeddings/embeddings/CP-CNN/CP-CNN_JUMP-CP_9.22_normalized.parquet
-
-#Imagenet (normalized): gs://calico-reference-embeddings/embeddings/Imagenet/Imagenet_JUMP-CP_9.22_normalized.parquet
-
-#novartis drugseq u2os:    gs://calico-reference-embeddings/embeddings/Novartis_DRUGseq_expression_data/Novartis_U2OS_Dose_Time_Signatures.parquet
-#novartis drugseq u2os normalized: gs://calico-reference-embeddings/embeddings/Novartis_DRUGseq_expression_data/novartis_drugseq_u2os_10uM_24h_normalized_factors.parquet
-
-#Chemperturb-bridge latent cross-cell line transcriptional perturbation representations: gs://calico-reference-embeddings/embeddings/ChemPerturb-Bridge/latent_perturbation_embeddings/jump_cp_latent_perturbation_embeddings.parquet
-
+#TRANSCRIPTOMIC_DATASETS
+    #"drugseq_normalized": "Novartis DRUG-seq 10 µM / 24H Normalized Varimax Factors: "gs://calico-reference-embeddings/indexed_by_inchikey/novartis_drugseq_u2os_10uM_24h_normalized_factors.parquet",
+    #"cpb_latent": "ChemPerturb-Bridge (CPB) / CPA Latent Perturbation Representations - in distribution: "gs://calico-reference-embeddings/indexed_by_inchikey/cpb_observed_molecules_lpm_latents-extra.parquet",
+    #"cpb_latent_all": "ChemPerturb-Bridge (CPB) / CPA Latent Perturbation Representations - projected all jump: "gs://calico-reference-embeddings/indexed_by_inchikey/jump_cp_latent_perturbation_embeddings.parquet",
+    #"drugseq_raw":"Novartis DRUG-seq Raw Expression Signatures (~15k genes): "gs://calico-reference-embeddings/indexed_by_inchikey/Novartis_U2OS_Dose_Time_Signatures.parquet",
 The KNN sweep notebook contains the code to run the analyses for kNN comparisons between all of the data sets above
 
 6/12/202 Update: I joined in MOA labels from Jump consortium/Shantanu's group.  
@@ -46,4 +42,4 @@ I have added a notebook to run CCA between the morphology datasets (including im
 2) Extract the latent transcriptional perturbation representations from chemperturb-bridge (20260920-ChemPerturbRidge_extract_latent_representation.ipynb)
 3) Added the Morphology_vs_Drugseq_v3.ipynb, updating the approach to running CCA
 
-09/23/2026 Update: I found errors in my normalization methods and have renormalized all the morphological datasets
+09/23/2026 Update: I found errors in my normalization methods and have renormalized all the morphological datasets.  I have deprecated many datasets, but still have the links elsewhere if needed.
