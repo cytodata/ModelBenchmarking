@@ -1,19 +1,14 @@
-# Morphology_vs_MOA
-Notebooks for comparing chemical representations with morphological representations
+# ModelBenchmarking
 
-make_parquets notebook is just for reference.  The output are the following files:
+Probing the correspondence between the morphological, transcriptional and chemical descriptions of small-molecule
+perturbations.
 
-#minimol: gs://calico-reference-embeddings/Annotations_from_Roman/Bayer_data_harmonized/minimol_embeddings/minimol_embeddings__Kim_et_al_subset_final.parquet
-#minimol with BROAD MOA labels: gs://calico-reference-embeddings/Annotations_from_Roman/Bayer_data_harmonized/minimol_embeddings/minimol_embeddings__Kim_et_al_subset_final_with_JUMPMOA.parquet
-#minimol cluster: gs://calico-reference-embeddings/Annotations_from_Roman/Bayer_data_harmonized/minimol_embeddings/minimol_clusters.csv
+## The problem
 
-#chemical checker sign2: gs://calico-reference-embeddings/embeddings/Chemical_Checker_Embeddings/parquets/JUMPCP_CC_Sign2_Global_Signatures.parquet
-#chemical checker sign3: gs://calico-reference-embeddings/embeddings/Chemical_Checker_Embeddings/parquets/JUMPCP_Sign3_CC_final.parquet
-#chemical checker sign3 clustered: gs://calico-reference-embeddings/Chemical_Checker_Embeddings/parquets/sign3_clusters.csv
-#chemical checker sign3 with MOA labels: gs://calico-reference-embeddings/embeddings/Chemical_Checker_Embeddings/parquets/JUMPCP_Sign3_CC_final_JUMP_MOA.parquet'
-#chemical checker sign3 ALL: gs://calico-reference-embeddings/embeddings/Chemical_Checker_Embeddings/JUMP_CP_Global_Signatures_full.parquet
-#chemical checker sign3 ALL_CLUSTERED: gs://calico-reference-embeddings/embeddings/Chemical_Checker_Embeddings/JUMP_CP_Global_Signatures_Clustered_Only.parquet
-#cc_imputed_clusters gs://calico-reference-embeddings/Chemical_Checker_Embeddings/parquets/sign3_big_clusters.csv
+Most drugs act on several targets at once, yet their mechanism of action (MOA) is usually described with a single
+label such as "HDAC inhibitor". Image-based models of cell morphology, such as DINO and OpenPhenom, are typically
+evaluated by how well they predict these labels. Because the labels are incomplete, this evaluation cannot show how
+much biology a model really captures.
 
 #MORPHOLOGY_DATASETS
     #"DINO (Raw)": "gs://calico-reference-embeddings/indexed_by_inchikey/BAYER_DINO_embeddings_nonorm_final.parquet",
@@ -32,14 +27,16 @@ make_parquets notebook is just for reference.  The output are the following file
     #"drugseq_raw":"Novartis DRUG-seq Raw Expression Signatures (~15k genes): "gs://calico-reference-embeddings/indexed_by_inchikey/Novartis_U2OS_Dose_Time_Signatures.parquet",
 The KNN sweep notebook contains the code to run the analyses for kNN comparisons between all of the data sets above
 
-6/12/202 Update: I joined in MOA labels from Jump consortium/Shantanu's group.  
-The MOA labels are located here: gs://calico-reference-embeddings/embeddings/JUMP MOA annotations/annotations_compound_gene_curated.parquet
+Each step folder has its own README with details, and each notebook explains its code in plain language.
 
-I have added a notebook to run CCA between the morphology datasets (including imagenet and CP-CNN) and Novartis U2OS drug-seq data.
+## Representations compared
 
-09/21/2026 Update: I have added a notebooks to do the following:
-1) Normalize the Novartis Drugseq dataset (2026_09_16_Normalizing_drug_seq.ipynb)
-2) Extract the latent transcriptional perturbation representations from chemperturb-bridge (20260920-ChemPerturbRidge_extract_latent_representation.ipynb)
-3) Added the Morphology_vs_Drugseq_v3.ipynb, updating the approach to running CCA
-
-09/23/2026 Update: I found errors in my normalization methods and have renormalized all the morphological datasets.  I have deprecated many datasets, but still have the links elsewhere if needed.
+| Representation | Type | Description | Source |
+|---|---|---|---|
+| **Bayer DINO** | morphological profile (Cell Painting) | self-supervised vision transformer; well-level embeddings, raw and after sphering and robust normalization to DMSO controls | Kim *et al.* (Bayer), *Self-supervision advances morphological profiling by unlocking powerful image representations* |
+| **OpenPhenom** | morphological profile (Cell Painting) | masked-autoencoder vision transformer for microscopy released by Recursion; 384-d and 1,920-d well-level embeddings aggregated from single cells | Recursion |
+| **CP-CNN**, **ImageNet CNN** | morphological profile (Cell Painting) | convolutional-network embeddings, normalized and prepared outside this repository | Moshkov *et al.*, 2024 |
+| **MiniMol** | chemical structure and molecular properties | graph-neural-network molecular embedding pretrained on molecular property and bioassay data (512-d) | Kläser *et al.*, 2024 |
+| **Chemical Checker** sign2 / sign3 | bioactivity | 25 signature spaces organized in five levels from chemistry to clinics, 3,200-d | Duran-Frigola *et al.*, 2020; Bertoni *et al.*, 2021 |
+| **Novartis DRUG-seq** | transcriptional profile | U2OS cells, 3,755 compounds at 4 doses (0.01–10 µM), a single 24 h time point, 14,370 genes | Novartis (DRUG-seq: Ye *et al.*, 2018) |
+| **ChemPerturb-Bridge** latent embeddings | latent perturbation response | 256-d compound embeddings used as a transcriptomic reference in Step 4.3. Two files exist: latents of the molecules observed by the model (reference of the saved 4.3 run) and a projection of all JUMP compounds (Step 0.5, ⚠️ see the limitations below) | n/a |

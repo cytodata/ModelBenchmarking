@@ -1,0 +1,75 @@
+# Code-quality checks run by pre-commit (https://pre-commit.com).
+#
+#   uv run pre-commit run --all-files   # check and auto-fix the whole repository
+#   uv run pre-commit install           # run the checks automatically before every `git commit`
+#
+# Python and notebook rules (lint, formatting, import order, docstrings, type hints) are configured
+# in pyproject.toml under [tool.ruff].
+
+# ---------------------------------------------------------------------------
+# File hygiene
+# ---------------------------------------------------------------------------
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+      - id: check-yaml
+      - id: check-toml
+      # Also validates notebooks, which are JSON files
+      - id: check-json
+      # Notebooks keep their figures (the largest is ~5 MB); anything bigger is probably data
+      - id: check-added-large-files
+        args: ["--maxkb=6000"]
+
+  # ---------------------------------------------------------------------------
+  # Python and Jupyter notebooks: lint + format with ruff
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.9
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+        types_or: ["python", "pyi", "jupyter"]
+      - id: ruff-format
+        types_or: ["python", "pyi", "jupyter"]
+
+  # ---------------------------------------------------------------------------
+  # Notebooks: valid nbformat schema (GitHub refuses to render invalid notebooks)
+  # ---------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: validate-notebooks
+        name: validate notebooks (nbformat)
+        language: python
+        types: [jupyter]
+        additional_dependencies: ["nbformat>=5.9"]
+        entry: python -c "import sys, nbformat; [nbformat.validate(nbformat.read(path, as_version=4)) for path in sys.argv[1:]]"
+
+  # ---------------------------------------------------------------------------
+  # Project metadata and dependencies
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.25
+    hooks:
+      - id: validate-pyproject
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: "0.12.19"
+    hooks:
+      - id: uv-lock
+
+  # ---------------------------------------------------------------------------
+  # Spelling in code, docstrings and documentation (settings in pyproject.toml [tool.codespell])
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.3
+    hooks:
+      - id: codespell
+        additional_dependencies: ["tomli>=2"]

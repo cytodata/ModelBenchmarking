@@ -1,0 +1,103 @@
+# CI for ModelBenchmarking
+#
+#   pull_request / push to main : pre-commit hooks (auto-fix) -> unit tests
+#
+# On a pull_request from a same-repo branch, if the hooks would modify files
+# (ruff formatting, trailing whitespace, etc.), the pre-commit job commits and
+# pushes those fixes back to the PR branch, then re-runs the hooks to confirm
+# they're clean. Forked-repo PRs get a read-only token and can't be pushed to,
+# so those just fail with the diff shown, same as before.
+#
+# Prerequisites in the repo (see notes at the bottom of this file):
+#   .pre-commit-config.yaml, pyproject.toml + uv.lock, tests/, tests/fixtures/.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PYTHON_VERSION: "3.11"
+  UV_FROZEN: "1"          # never re-resolve dependencies in CI; use uv.lock as-is
+
+jobs:
+  # pre-commit: same hooks as local pre-commit (nbformat validation, ruff, etc.)
+  # If a hook modifies a file and the PR branch lives in this repo (not a
+  # fork), the fix is committed and pushed back automatically. Otherwise the
+  # job fails with the diff shown, same as a plain pre-commit/action setup.
+  pre-commit:
+    name: pre-commit hooks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # PRs from a branch in this repo: check out the actual branch so fixes
+      # can be pushed to it. Everything else (forked PRs, push to main):
+      # default checkout, which is read-only for forks anyway.
+      - name: Checkout PR branch
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Checkout
+        if: "!(github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Run pre-commit hooks
+        id: pre-commit-run
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+        continue-on-error: true
+
+      - name: Commit and push auto-fixes
+        if: >
+          steps.pre-commit-run.outcome == 'failure' &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7.2.0
+        with:
+          commit_message: "style: pre-commit auto-fixes"
+
+      - name: Verify pre-commit passes
+        if: steps.pre-commit-run.outcome == 'failure'
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+
+  # Unit tests on the analysis package (synthetic data, no GCS access)
+  tests:
+    name: unit tests
+    needs: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Cache uv downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('uv.lock') }}
+
+      - name: Install locked environment
+        run: uv sync --python "$PYTHON_VERSION" --all-extras
+
+      - name: Run tests
+        run: uv run pytest -q --durations=10
+
