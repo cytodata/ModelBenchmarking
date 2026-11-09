@@ -61,34 +61,48 @@ the chemical structure.
 
 ```mermaid
 flowchart LR
-    subgraph S0["0 · Data assembly"]
+    subgraph S0["0 - Data assembly"]
         CC["Chemical Checker<br/>sign2 / sign3"]
         MM["MiniMol"]
         DINO["Bayer DINO"]
         OP["OpenPhenom<br/>384 / 1,920"]
-        CPB["ChemPerturb-Bridge ⚠️"]
+        CPB["ChemPerturb-Bridge"]
     end
-    subgraph S1["1 · Preprocessing"]
-        NORM["OpenPhenom normalization<br/>(robust z-score + sphering)"]
-        ACT["Phenotypic activity<br/>filtering"]
-        DSEQ["DRUG-seq →<br/>43 latent factors"]
-    end
-    EXT["Re-normalized, InChIKey-indexed tables<br/>(produced outside the repository)"]
-    CLU["2 · Compound<br/>clustering"]
-    KNN["3 · Neighbourhood<br/>agreement"]
-    CCA["4 · Morphology vs<br/>transcriptomics"]
 
-    OP --> NORM --> ACT
+    subgraph S1["1 - Preprocessing"]
+        NORM["OpenPhenom normalization<br/>robust z-score + sphering"]
+        ACT["Phenotypic activity filtering"]
+        DSEQ["DRUG-seq<br/>43 latent factors"]
+    end
+
+    EXT["Re-normalized, InChIKey-indexed tables<br/>produced outside the repository"]
+    CLU["2 - Compound clustering"]
+    KNN["3 - Neighbourhood agreement"]
+    CCA["4 - Morphology vs transcriptomics"]
+
+    OP --> NORM
+    NORM --> ACT
     DINO --> ACT
+
     MM --> CLU
     CC --> CLU
-    CC & MM & DINO & NORM & ACT --> KNN
+
+    CC --> KNN
+    MM --> KNN
+    DINO --> KNN
+    NORM --> KNN
+    ACT --> KNN
     CLU --> KNN
-    OP & DINO & NORM --> CCA
+
+    OP --> CCA
+    DINO --> CCA
+    NORM --> CCA
     DSEQ --> CCA
-    CC & MM --> CCA
+    CC --> CCA
+    MM --> CCA
     EXT --> CCA
-    CPB -. optional reference in 4.3 .-> CCA
+
+    CPB -.->|"Optional reference in 4.3"| CCA
 ```
 
 ## Repository structure
@@ -234,33 +248,6 @@ applies to `BAYER_DINO_embeddings_normed_final.parquet`.
 | `indexed_by_inchikey/*.parquet` (12 files, written 09/25/2026) | current versions of the morphological profiles, DRUG-seq signatures and factors, and ChemPerturb-Bridge latents, rewritten with an InChIKey column | 4.3 |
 | `indexed_by_inchikey/cpb_observed_molecules_lpm_latents-extra.parquet` | ChemPerturb-Bridge latents of the molecules observed by the model ("in distribution" in the original repository); created 09/25/2026; ⚠️ the code that produced it is in neither repository; reference of the saved 4.3 run | 4.3 |
 | `indexed_by_inchikey/jump_cp_latent_perturbation_embeddings.parquet` | ChemPerturb-Bridge projection of all JUMP compounds (the Step 0.5 product, re-indexed); ⚠️ untrained encoder; the `cpb_latent_all` option | 4.3 (option) |
-
-## Code review and known limitations
-
-The notebooks originate from [cytodata/ModelBenchmarking](https://github.com/cytodata/ModelBenchmarking). This
-repository reorganizes them and moves their shared functions into a tested package. The analysis code was reviewed
-during this reorganization. Issues that could silently produce wrong
-results were fixed. Issues that require a scientific decision, or a re-run with data access, are documented.
-**Read [`docs/code_review.md`](docs/code_review.md) and [`docs/notebook_review.md`](docs/notebook_review.md) before
-interpreting or publishing results.** The main points are:
-
-* **Model ranking is unresolved.** Differences between the top-ranked models are smaller than the changes caused by
-  the choice of benchmark design or similarity metric (CKA or SVCCA), and no confidence intervals are reported.
-* **Data provenance.** Several Step 4 inputs are produced outside this repository, including every file read by 4.3
-  and the transcriptomic reference of its saved run. Two ChemPerturb-Bridge files exist. The projection of all JUMP
-  compounds (Step 0.5) was generated with an untrained network, and its copy in the bucket has been unchanged since
-  09/18/2026. The latents of observed molecules, used by the saved 4.3 run, are a separate file whose generating code
-  is unavailable.
-* **Two generations of input files.** Steps 3, 4.1 and 4.2 read the earlier normalized profiles, which the original
-  author has deprecated. Step 4.3 reads the re-normalized profiles. Results from 4.3 therefore differ from 4.1 and
-  4.2 in both the transcriptomic reference and the normalization of the morphological profiles.
-* **Normalization.** Step 1.1 estimates the robust z-score and the sphering transform from DMSO wells pooled across
-  all plates. Plate and batch effects therefore remain in the normalized OpenPhenom profiles. Standard practice
-  normalizes each plate to its own negative controls. The code of the 09/22/2026 re-normalization is unavailable,
-  so its method cannot be checked.
-* **Comparability.** Step 3 compares models on different compound sets, uses a single well per compound and keeps a
-  model-specific subset of active compounds. The Step 4 pilot analyses (Part 1 of 4.1 and 4.2) treat each well as an
-  independent sample, although replicate wells share one DRUG-seq profile.
 
 ## References
 
